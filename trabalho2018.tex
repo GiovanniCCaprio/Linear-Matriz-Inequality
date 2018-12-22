@@ -1,0 +1,283 @@
+\documentclass[12pt]{article}
+
+\usepackage[a4paper,hmargin={2.5cm,2.5cm},vmargin={2.5cm,2.5cm}]{geometry}
+\usepackage[portuges,brazil]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{indentfirst,dsfont,color,tabularx}
+\usepackage{mcode}
+\usepackage{url,epsfig,psfrag,fancybox}%,multirow}
+\usepackage{color,amsmath,amssymb}
+
+\renewcommand{\vfill}{\vspace*{0.5cm}}
+\newcommand\I{\mbox{I}}
+\newtheorem{teorema}{\noindent{\bf Teorema} }
+\newtheorem{lema}{\noindent{\bf Lema} }
+\newcommand{\He}[1]{\mbox{\sl He}\left(#1\right)}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\begin{center} 
+{\Large IA892  -- Análise e Controle de Sistemas Lineares \\[2mm] por Desigualdades Matriciais Lineares (LMIs)}
+\end{center}
+
+\vspace*{0.5cm}
+
+\begin{center}
+\bf Trabalho Computacional --- Segundo Semestre 2018
+\end{center}
+
+\vspace*{1.5cm}
+
+O objetivo deste trabalho é avaliar a estabilização robusta de sistemas politópicos invariantes no tempo utilizando uma técnica de dois estágios. Seja o sistema linear politópico
+\begin{equation}
+\begin{aligned}
+\label{eq:sistemas}
+\dot{x}(t)&=A(\alpha)x(t)+B(\alpha)u(t)\\
+y(t)&=C(\alpha)x(t)
+\end{aligned}
+\end{equation}
+sendo $x \in \mathbb{R}^n$ o vetor de estados, $u \in \mathbb{R}^m$ a entrada de controle e $y\in \mathbb{R}^p$ a saída medida.
+As matrizes dinâmica, de entrada e de saída do sistema são politópicas, isto é
+\[
+A(\alpha)=\sum_{i=1}^N \alpha_i A_i, \quad B(\alpha)=\sum_{i=1}^N \alpha_i B_i, \quad C(\alpha)=\sum_{i=1}^N \alpha_i C_i,  \quad \alpha \in \Lambda_N
+\]
+sendo $\Lambda_N$ o simplex unitário. A seguinte lei de controle por realimentação dinâmica de saída de ordem completa (ou seja, $x_c \in \mathbb{E}^n$) é projetada
+\begin{equation}
+\label{eq:control}
+\begin{aligned}
+\dot{x}_c(t)&=A_cx_c(t)+B_c y(t)\\
+u(t)&=C_c x(t)
+\end{aligned}
+\end{equation}
+em que $A_c$, $B_c$ e $C_c$ são as matrizes do controlador. Para facilitar o projeto, a matriz de transmissão direta do controlador $D_c$ não é considerada (controlador estritamente próprio). Também é considerada outra hipótese simplificadora, analisada em duas situações:
+\begin{itemize}
+	\item A matriz $C_c$ é dada e igual a um ganho robusto de realimentação de estados para o sistema \eqref{eq:sistemas}, ou seja, $C_c$ é tal que 	$A(\alpha)+B(\alpha)C_c$ é assintoticamente estável para todo $\alpha \in \Lambda_N$.	
+	\item A matriz $B_c$ é dada e igual a um ganho robusto de observação de estados para o sistema \eqref{eq:sistemas}, ou seja, $B_c$ é tal que  $A(\alpha)+B_c C(\alpha)$  é assintoticamente estável para todo $\alpha \in \Lambda_N$.
+	
+\end{itemize}
+Assim, no primeiro estágio do projeto é gerada uma família de ganhos de realimentação de estados $K$ e observação de estados $L$, que servem como ponto de partida para o segundo estágio.
+
+Para projetar o ganho $K$ de realimentação de estados, o seguinte lema é utilizado.
+\begin{lema}
+	\label{lem:stage:1:K}
+	Se existerem uma matriz simétrica $P(\alpha)=P(\alpha)'$, matrizes $Z$ e $X$, e um escalar $\xi$ positivo tais que $P(\alpha)>0$ e
+\[
+\begin{bmatrix} 
+A(\alpha)X+X'A(\alpha)'+B(\alpha)Z+Z'B(\alpha)' &   P(\alpha)-X'+\xi A(\alpha)X+\xi B(\alpha)Z \\ 
+\star & -\xi X-\xi X'
+\end{bmatrix} < 0 
+\]
+para todo $\alpha \in \Lambda_N$, então $K=ZX^{-1}$ é um ganho por realimentação de estados tal que $A(\alpha)+B(\alpha)K$ é assintoticamente estável.
+\end{lema}
+
+Para projetar o ganho $L$ de observação de estados, o seguinte lema é utilizado.
+\begin{lema}
+	\label{lem:stage:1:L}
+	Se existe uma matriz simétrica $P(\alpha)=P(\alpha)'$ e matrizes $Z$ e $X$, e um escalar $\xi$ positivo tais que $P(\alpha)>0$ e
+	\[
+	\begin{bmatrix} 
+	XA(\alpha)+A(\alpha)'X'+ZC(\alpha)+C(\alpha)'Z' &   P(\alpha)-X+\xi A(\alpha)'X'+\xi C(\alpha)'Z' \\ 
+	\star & -\xi X-\xi X'
+	\end{bmatrix} < 0 
+	\]
+	para todo $\alpha \in \Lambda_N$, então $L=X^{-1}Z$ é um ganho de observação de estados tal que $A(\alpha)+LC(\alpha)$ é assintoticamente estável.
+\end{lema}
+
+Ao variar-se o valor de $\xi$ nas condições dos Lemas~\ref{lem:stage:1:K} e \ref{lem:stage:1:L} é possível obter ganhos estabilizantes diferentes para serem usados como parâmetros de entrada para o segundo estágio. Esse processo de geração de ganhos é apenas uma heurística.
+
+Com os ganhos $K$ e $L$ em mãos, testa-se o segundo estágio. O próximo teorema é o segundo estágio considerando que $C_c=K$ está fixa.  
+\begin{teorema} 
+	\label{thm:estagio:2:A}
+	Dados um ganho $C_c\in \mathbb{R}^{m \times n}$ e um escalar $\zeta$ positivo. Se existirem matrizes 
+	$P(\alpha)=P(\alpha)'\in \mathbb{R}^{2n \times 2n}$, $V,H,Q,Y\in \mathbb{R}^{n \times n}$, $G\in \mathbb{R}^{n \times p}$
+	tais que	$P(\alpha)>0$ e
+	\begin{equation}
+	\label{eq:thm:A}
+	\begin{bmatrix}
+	T(\alpha)+T(\alpha)' & P(\alpha)-J'+\zeta T(\alpha)\\
+	\star & -\zeta(J+J')	
+	\end{bmatrix}<0
+	\end{equation}
+	com
+	\[
+	T(\alpha)=\begin{bmatrix}
+	Q\big(A(\alpha)+B(\alpha)C_c\big) & QA(\alpha)	 \\ Y\big(A(\alpha)+B(\alpha)C_c\big)+GC(\alpha)+H & YA(\alpha)+GC(\alpha)
+	\end{bmatrix},\quad J=\begin{bmatrix}
+	Q& Q \\ Y+V & Y	
+	\end{bmatrix}
+	\]
+	para todo $\alpha \in \Lambda_N$, então $A_c=V^{-1}H$, $B_c=V^{-1}G$ e $C_c$ garantem que o controlador robusto \eqref{eq:control} estabiliza robustamente o sistema \eqref{eq:sistemas}.
+\end{teorema}
+
+O próximo teorema é o segundo estágio considerando que $B_c=L$ está fixa.  
+\begin{teorema} 
+	\label{thm:estagio:2:B}
+	Dados um ganho $B_c\in \mathbb{R}^{n \times p}$ e um escalar $\zeta$ positivo. Se existirem matrizes 
+	$P(\alpha)=P(\alpha)'\in \mathbb{R}^{2n \times 2n}$, $V,H,Q,Y\in \mathbb{R}^{n \times n}$, $G\in \mathbb{R}^{n \times m}$
+	tais que	$P(\alpha)>0$ e \eqref{eq:thm:A}
+	com
+	\[
+	T(\alpha)=\begin{bmatrix}
+	Q\big(A(\alpha)'+C(\alpha)'B_c'\big) & QA(\alpha)'	 \\ Y\big(A(\alpha)'+C(\alpha)'B_c'\big)+GB(\alpha)'+H & YA(\alpha)'+GB(\alpha)'
+	\end{bmatrix},\quad J=\begin{bmatrix}
+	Q& Q \\ Y+V & Y	
+	\end{bmatrix}
+	\]
+	para todo $\alpha \in \Lambda_N$, então $A_c=V^{-1}H$, $C_c=V^{-1}G$ e $B_c$ garantem que o controlador robusto \eqref{eq:control} estabiliza robustamente o sistema  \eqref{eq:sistemas}.
+\end{teorema}
+
+
+\vfill 
+
+\section*{Programação}
+
+Todas as condições de síntese devem ser programadas usando o {\em toolbox} ROLMIP (Robust LMI Parser), disponível para {\em download} em 
+\begin{center}
+	\url{https://rolmip.github.io/}
+\end{center}
+As funções referentes ao primeiro estágio devem ser programadas com a estrutura
+\begin{verbatim}
+function output = primeiroEstagioK(A,B,xi)
+
+function output = primeiroEstagioL(A,C,zeta)
+\end{verbatim}
+em que $A$, $B$ e $C$ são as matrizes do sistema fornecidas em estruturas celulares, e {\tt xi} e {\tt zeta} são escalares dados. A variável de saída deve ter pelo menos dois campos
+\begin{verbatim}
+output.feas
+output.Ke ou output.Le
+\end{verbatim}
+em que {\tt output.feas} indica factibilidade ou não (por exemplo, 1 é factível, 0 não), e {\tt output.Ke} é o ganho estabilizante (caso tenha sido encontrado) de realimentação de estados e {\tt output.Le} é o ganho estabilizante (caso tenha sido encontrado) de observação de estados. As condições devem ser testadas para os seguintes valores de $\xi$ 
+\[
+\xi \in \{10^{-5},10^{-3},10^{-1},1\}
+\]
+Para cada valor de $\xi$ testado que forneça um ganho factível, testa-se o segundo estágio correspondente considerando os mesmos valores para $\zeta$. Consequentemente, considerando os dois estágios, ocorrem no máximo $4\times 4=16$ condições LMIs testadas. Se o segundo estágio também fornecer uma solução, computa-se o sistema como estabilizado e encerra-se a busca. Caso contrário testa-se o próximo $\xi$ e repete-se o procedimento até o segundo estágio achar uma solução (ou não, e nesse caso o sistema é considerado como não estabilizável).
+
+As funções referentes aos segundos estágios devem ser programadas de acordo com as estruturas
+\begin{verbatim}
+function output = segundoEstagio_Cc(A,B,C,K)
+
+function output = segundoEstagio_Bc(A,B,C,L)
+\end{verbatim}
+em que $A$, $B$ e $C$ são as matrizes do sistema fornecidas em estruturas celulares, $K$ é o ganho
+de realimentação de estados determinado no primeiro estágio e $L$ é o ganho
+de observação de estados determinado no primeiro estágio. Note que os segundos estágios devem ser testados para os quatro valores de $\zeta$. A variável
+de saída deve ter pelo menos três campos
+\begin{verbatim}
+output.feas
+output.Ac
+output.Bc ou output.Cc
+\end{verbatim}
+em que {\tt output.feas} indica factibilidade ou não, e {\tt output.Ac}, {\tt output.Bc} e {\tt output.Cc}, são as matrizes do controlador dinâmico estabilizante (em caso de factibilidade).
+
+\section*{Base de sistemas}
+
+Após a programação das condições, o próximo passo é testar
+a eficácia do método. As condições de síntese (pares (Lema~1,Teorema~1) e (Lema~2,Teorema~12) são aplicadas em uma base de dados de sistemas politópicos instáveis que garantidamente podem ser estabilizados pelo controlador dinâmico \eqref{eq:control}.  São consideradas as seguintes dimensões para os sistemas
+\[
+n \in \{3,4,5\},\quad (m,p)\in \{(1,1)\},\quad N\in\{2,3,4\}
+\]
+e para cada combinação das dimensões são gerados 100 sistemas (total de 1200).
+
+A base dados pode ser baixada no endereço:
+\begin{center}
+	\url{http://www.dt.fee.unicamp.br/~ricfow/IA892/baseTrabalho2018.zip}
+\end{center}
+
+\subsection*{Leitura e teste da base de dados}
+
+Com o arquivo {\tt DB\_dof.mat} em mãos, o seguinte código pode ser utilizado para testar a base de dados com as condições de síntese apresentadas anteriormente.
+
+\begin{lstlisting} 
+xis= [1e-5 1e-1 1];
+load('DB_dof.mat');
+output.tabela = [];
+for d=1:size(dimensoes,1)
+	ordem    = dimensoes(d,1);
+	entradas = dimensoes(d,2);
+	saidas   = dimensoes(d,3);
+	vertices = dimensoes(d,4);
+	placar = [0 0];
+	for i= 1:totalSistemas
+		A = BASE{ordem,entradas,saidas,vertices,i}.A;
+		B = BASE{ordem,entradas,saidas,vertices,i}.B;
+		C = BASE{ordem,entradas,saidas,vertices,i}.C;
+		feas=[0 0];
+		for xi=xis,
+			stage1 = primeiroEstagioK(A,B,'xi',xi);
+			if stage1.feas
+				feas = [1 0];
+				stage2 = segundoEstagio_Cc(A,B,C,stage1.K);
+				if stage2.feas
+					feas=[1 1];
+					break;
+				end
+			end
+		end
+		placar = placar + feas;
+	end
+	fprintf('terminei [%d %d %d %d] - [%d %d]\n',ordem,entradas,saidas,vertices,placar(1),placar(2));
+	output.tabela = [output.tabela; [ordem,entradas,saidas,vertices,placar(1),placar(2)]];
+end
+\end{lstlisting}
+
+O mesmo código pode ser utilizado para testar o par (Lema~2,Teorema~2).
+\subsection*{Apresentação dos resultados}
+
+O relatório final deve ser entregue em forma eletrônica (PDF), contendo
+\begin{enumerate}
+	\item Identificação do aluno.
+	\item Resultados da aplicação das condições de estabilização robusta para realimentação dinâmica de saída. Uma breve conclusão sobre os resultados obtidos.
+	\item Apêndices contendo \underline{todos} os códigos utilizados.
+\end{enumerate}
+
+Os resultados devem ser apresentados em forma de uma tabela com o seguinte formato:
+\begin{center}
+\begin{tabular}{c|c|c|c|c|c|c|c|c|c|c|c|c} \hline \hline
+	  &  \multicolumn{3}{|c}{L1}& \multicolumn{3}{|c}{T1}& \multicolumn{3}{|c}{L2}& \multicolumn{3}{|c}{T2}\\ \hline
+$(n,m,p,N)$  & $V$ & $L$ & SE & $V$ & $L$ & SE & $V$ & $L$ & SE& $V$ & $L$ & SE\\ \hline
+ (3,1,1,2) &  $\cdot$ &  $\cdot$ & $\cdot$ & $\cdot$ &  $\cdot$ & $\cdot$ & $\cdot$ &  $\cdot$ & $\cdot$& $\cdot$ &  $\cdot$ & $\cdot$\\
+ \vdots  &\vdots &\vdots &\vdots &\vdots &\vdots &\vdots &\vdots &\vdots &\vdots&\vdots &\vdots &\vdots\\
+ (5,2,2,4)  & $\cdot$ &  $\cdot$ & $\cdot$ & $\cdot$ &  $\cdot$ & $\cdot$ & $\cdot$ &  $\cdot$ & $\cdot$& $\cdot$ &  $\cdot$ & $\cdot$\\ \hline
+   &  &   & $P_1$ &  &   & $E_1$ &  &   & $P_2$ &  &   & $E_2$\\  \hline
+   &  &   &  &  &   & $\hat{E}_1$ &  &   & &  &   & $\hat{E}_2$\\ 
+\hline \hline
+\end{tabular}
+\end{center}
+sendo SE o número de sistemas estabilizados, $V$ o número
+de variáveis escalares e $L$ o número de linhas de LMIs e
+\begin{itemize}
+	\item[$P_i$]: Porcentagem de sistemas (no total) estabilizados no primeiro estágio (Lema i).
+	\item[$E_i$]: Porcentagem de sistemas (no total) estabilizados no segundo estágio pela condição do Teorema i.
+	\item[$\hat{E}_i$]: $100 \times (E_i/P_i)$
+\end{itemize}
+Os valores $\hat{E}_i$  medem a eficiência do segundo estágio ignorando os casos em que o primeiro estágio não forneceu solução.
+
+Também deve ser apresentada uma tabela contendo as mesmas informações mas considerando $\xi=\zeta=1$, ou seja, sem realizar nenhuma busca nos escalares. É esperado que a taxa de estabilização diminua, embora o tempo computacional seja menor.
+
+\subsection*{Avaliação e entrega}
+
+O relatório deve ser entregue até o dia 10 de dezembro. O arquivo deve ser enviado por email para {\tt ricfow@dt.fee.unicamp.br} com o campo ``assunto'' na seguinte forma:  IA982 - Trabalho - RA. Atrasos implicam em descontos na nota (15\% ao dia).
+
+\subsection*{Opcional - Pontos Extras}
+
+Para o par (Lema~1,Teorema~1), adaptar o primeiro estágio para gerar um ganho de realimentação de estados $K(\alpha)$ com dependência afim em $\alpha$. Por exemplo, fazendo 
+\[
+Z(\alpha)=\sum_{i=1}^N\alpha_iZ_i
+\]
+Fazer as modificações necessárias no segundo estágio e reportar os resultados para a base de dados. Houve melhora ou piora na taxa de estabilização? Motivação desta investigação: embora o controlador resultante seja $(A_c,B_c,C_c(\alpha))$, isto é, não implementável, poderíamos considerar um terceiro estágio, em que entraríamos com $A_c$, $B_c$, agora conhecidos, e procuraríamos por um $C_c$ que não depende de $\alpha$.
+
+
+
+
+
+
+%\bibliographystyle{alpha}
+
+%\bibliography{listacompleta,hinf,dstab,estab,saida,estquad,estgeral,fldp,hinfd,ltv,pole,polinomial,robust,sdp,newbib}
+
+
+
+
+\end{document}
